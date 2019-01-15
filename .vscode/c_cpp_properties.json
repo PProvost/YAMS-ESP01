@@ -92,7 +92,7 @@
                 "__ets__",
                 "ICACHE_FLASH",
                 "ARDUINO=10805",
-                "ARDUINO_BOARD=\"PLATFORMIO_ESP01\"",
+                "ARDUINO_BOARD=\"PLATFORMIO_ESP01_1M\"",
                 "LWIP_OPEN_SRC",
                 "TCP_MSS=536",
                 "VTABLES_IN_FLASH",
