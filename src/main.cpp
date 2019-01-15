@@ -2,24 +2,28 @@
 #include <ESP8266Wifi.h>
 #include <PubSubClient.h>
 
-// TODO: move these to ../ap_setting.h
-const char* device_host_name = "esp8266-motion-1";
-const char* ssid = "Provost-Mesh";
-const char* password = "cra6ga12o4doph09";
-const char* mqtt_server = "hassio.lan";
-const char* mqtt_username = "mqtt_user";
-const char* mqtt_password = "mqtt_pass";
+// NOTE: This file is NOT included in the github repo. You need to create it
+// yourself to include your own network settings. (See the next set of const char*
+// declarations for the required defines.)
+#include "../../ap_setting.h"
+
+const char *device_host_name = "esp8266-motion-1";
+const char *ssid = WIFI_SSID;
+const char *password = WIFI_PASSWORD;
+const char *mqtt_server = MQTT_HOST;
+const char *mqtt_username = MQTT_USER;
+const char *mqtt_password = MQTT_PASSWORD;
 
 //Static IP address configuration
 IPAddress staticIP(192, 168, 135, 10); //ESP static ip
 IPAddress gateway(192, 168, 135, 1);   //IP Address of your WiFi Router (Gateway)
-IPAddress subnet(255, 255, 255, 0);  //Subnet mask
-IPAddress dns(192, 168, 135, 1);  //DNS
+IPAddress subnet(255, 255, 255, 0);    //Subnet mask
+IPAddress dns(192, 168, 135, 1);       //DNS
 
-#define INACTIVE_DELAY  2000
+#define INACTIVE_DELAY 2000 // milliseconds between "on" state and "off" state
 
-// change the motions sensor topic as appropriate
-const char* mqtt_topic_template = "network/DEVICE_HOST_NAME/motion/state";
+// change the motions sensor topic as appropriate.
+const char *mqtt_topic_template = "esp8266/binary_sensor/DEVICE_HOST_NAME/";
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
@@ -27,19 +31,20 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 
-void setup_wifi() {
-
+void setup_wifi()
+{
   delay(10);
-  // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
   WiFi.hostname(device_host_name);
-  WiFi.config(staticIP, subnet, gateway, dns);
+  // Uncomment to use a static IP address  
+  // WiFi.config(staticIP, subnet, gateway, dns);
   WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     delay(500);
     Serial.print(".");
   }
@@ -52,6 +57,83 @@ void setup_wifi() {
   Serial.println(WiFi.localIP());
 }
 
+void reconnect()
+{
+  // Loop until we're reconnected
+  while (!client.connected())
+  {
+    Serial.print("Attempting MQTT connection...");
+    // Create a random client ID
+    String clientId = "ESP8266Client-";
+    clientId += String(random(0xffff), HEX);
+    // Attempt to connect
+    if (client.connect(clientId.c_str(), mqtt_username, mqtt_password))
+    {
+      Serial.println("connected");
+      Serial.println("- Sending HASS discovery message");
+
+      String mqttTopic = mqtt_topic_template;
+      mqttTopic.replace("DEVICE_HOST_NAME", device_host_name);
+      mqttTopic.concat("config");
+
+      String message = "{ \"name\": \"DEVICE_NAME\", \"device_class\": \"motion\" }";
+      message.replace("DEVICE_NAME", device_host_name);
+      client.publish(mqttTopic.c_str(), message.c_str());
+      client.loop();
+
+    }
+    else
+    {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+
+void setup()
+{
+  //   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
+  Serial.begin(115200);
+  setup_wifi();
+  client.setServer(mqtt_server, 1883);
+  // client.setCallback(callback);
+
+  Serial.println("Starting...");
+  if (!client.connected())
+  {
+    reconnect();
+  }
+}
+
+void loop()
+{
+  String mqttTopic = mqtt_topic_template;
+  mqttTopic.replace("DEVICE_HOST_NAME", device_host_name);
+  mqttTopic.concat("state");
+
+  // Send on
+  Serial.println("- Sending active message");
+  client.publish(mqttTopic.c_str(), "ON");
+  client.loop();
+
+  // Wait a bit
+  delay(INACTIVE_DELAY);
+
+  // Send off
+  Serial.println("- Sending inactive message");
+  client.publish(mqttTopic.c_str(), "OFF");
+  client.loop();
+
+  delay(100);
+  Serial.println("Sleeping...");
+
+  ESP.deepSleep(0);
+}
+
+// If we want to subscribe to notifications, this is the callback
 // void callback(char* topic, byte* payload, unsigned int length) {
 //   Serial.print("Message arrived [");
 //   Serial.print(topic);
@@ -72,60 +154,3 @@ void setup_wifi() {
 
 // }
 
-void reconnect() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Create a random client ID
-    String clientId = "ESP8266Client-";
-    clientId += String(random(0xffff), HEX);
-    // Attempt to connect
-    if (client.connect(clientId.c_str(), mqtt_username, mqtt_password)) {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      // client.publish("outTopic", "hello world");
-      // ... and resubscribe
-      // client.subscribe("inTopic");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-
-void setup() {
-//   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
-  Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
-  // client.setCallback(callback);
-
-  Serial.println("Starting...");
-  if (!client.connected()) {
-    reconnect();
-  }
-}
-
-void loop() {
-  String mqttTopic = mqtt_topic_template;
-  mqttTopic.replace("DEVICE_HOST_NAME", device_host_name);
-  
-  client.loop();
-  Serial.println("- Sending active message");
-  client.publish(mqttTopic.c_str(), "on");
-
-  delay(INACTIVE_DELAY);
-  
-  Serial.println("- Sending inactive message");
-  client.publish(mqttTopic.c_str(), "off");
-
-  client.loop();
-  delay(100);
-  Serial.println("Sleeping...");
-
-  ESP.deepSleep(0);
-
-}
