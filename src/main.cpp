@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <ESP8266Wifi.h>
+#include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
 // NOTE: This file is NOT included in the github repo. You need to create it
