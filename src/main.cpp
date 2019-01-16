@@ -5,7 +5,11 @@
 // NOTE: This file is NOT included in the github repo. You need to create it
 // yourself to include your own network settings. (See the next set of const char*
 // declarations for the required defines.)
+#ifndef TRAVIS_CI
 #include "../../ap_setting.h"
+#else
+#include "sample_ap_setting.h"
+#endif
 
 const char *device_host_name = "esp8266-motion-1";
 const char *ssid = WIFI_SSID;
@@ -15,7 +19,7 @@ const char *mqtt_username = MQTT_USER;
 const char *mqtt_password = MQTT_PASSWORD;
 
 //Static IP address configuration
-IPAddress staticIP(192, 168, 135, 10); //ESP static ip
+IPAddress staticIP(192, 168, 135, 10); //ESP static ip - see static IP config in setup_wifi()
 IPAddress gateway(192, 168, 135, 1);   //IP Address of your WiFi Router (Gateway)
 IPAddress subnet(255, 255, 255, 0);    //Subnet mask
 IPAddress dns(192, 168, 135, 1);       //DNS

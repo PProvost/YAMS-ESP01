@@ -10,6 +10,7 @@ cache:
 
 env:
     - PLATFORMIO_CI_SRC=src/main.cpp
+    - PLATFORMIO_BUILD_FLAGS="-D TRAVIS_CI"
 
 install:
     - pip install -U platformio
