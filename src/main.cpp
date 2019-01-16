@@ -8,7 +8,7 @@
 #ifndef TRAVIS_CI
 #include "../../ap_setting.h"
 #else
-#include <sample_ap_setting.h>
+#include "../sample_ap_setting.h"
 #endif
 
 const char *device_host_name = "esp8266-motion-1";
