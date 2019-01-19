@@ -35,8 +35,17 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 
+uint8_t macAddressBytes[6];
+char macAddressString[18];
+
 void setup_wifi()
 {
+  WiFi.macAddress(macAddressBytes);
+  for(int i=0; i<sizeof(macAddressBytes); ++i)
+    sprintf(macAddressString, "%s%02x:", macAddressString, macAddressBytes[i]);
+  Serial.print("MAC Address: ");
+  Serial.println(macAddressString);
+
   delay(10);
   Serial.println();
   Serial.print("Connecting to ");
