@@ -19,7 +19,7 @@ const char *mqtt_username = MQTT_USER;
 const char *mqtt_password = MQTT_PASSWORD;
 
 //Static IP address configuration
-IPAddress staticIP(192, 168, 135, 10); //ESP static ip - see static IP config in setup_wifi()
+IPAddress staticIP(192, 168, 135, 6); //ESP static ip - see static IP config in setup_wifi()
 IPAddress gateway(192, 168, 135, 1);   //IP Address of your WiFi Router (Gateway)
 IPAddress subnet(255, 255, 255, 0);    //Subnet mask
 IPAddress dns(192, 168, 135, 1);       //DNS
