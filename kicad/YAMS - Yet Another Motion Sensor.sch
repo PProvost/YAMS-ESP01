@@ -53,7 +53,7 @@ U 1 1 5C33B3D4
 P 3900 4000
 F 0 "C1" H 4015 4046 50  0000 L CNN
 F 1 "100nF" H 4015 3955 50  0000 L CNN
-F 2 "Capacitor_THT:CP_Radial_Tantal_D5.0mm_P2.50mm" H 3938 3850 50  0001 C CNN
+F 2 "Capacitor_THT:C_Disc_D3.8mm_W2.6mm_P2.50mm" H 3938 3850 50  0001 C CNN
 F 3 "~" H 3900 4000 50  0001 C CNN
 	1    3900 4000
 	1    0    0    -1  
@@ -142,16 +142,14 @@ $EndComp
 $Comp
 L power:GND #PWR06
 U 1 1 5C33BE69
-P 6350 1800
-F 0 "#PWR06" H 6350 1550 50  0001 C CNN
-F 1 "GND" H 6355 1627 50  0000 C CNN
-F 2 "" H 6350 1800 50  0001 C CNN
-F 3 "" H 6350 1800 50  0001 C CNN
-	1    6350 1800
+P 6650 1800
+F 0 "#PWR06" H 6650 1550 50  0001 C CNN
+F 1 "GND" H 6655 1627 50  0000 C CNN
+F 2 "" H 6650 1800 50  0001 C CNN
+F 3 "" H 6650 1800 50  0001 C CNN
+	1    6650 1800
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	6650 1800 7300 1800
 $Comp
 L Connector_Generic:Conn_01x02 J1
 U 1 1 5C33E231
@@ -163,38 +161,9 @@ F 3 "~" H 8200 1700 50  0001 C CNN
 	1    8200 1700
 	1    0    0    1   
 $EndComp
-Wire Wire Line
-	6950 1500 7300 1500
-$Comp
-L Device:CP1 C3
-U 1 1 5C33EB16
-P 7300 1650
-F 0 "C3" H 7415 1696 50  0000 L CNN
-F 1 "1uF" H 7415 1605 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 7300 1650 50  0001 C CNN
-F 3 "~" H 7300 1650 50  0001 C CNN
-	1    7300 1650
-	1    0    0    1   
-$EndComp
-$Comp
-L Device:CP1 C2
-U 1 1 5C33EB85
-P 6000 1650
-F 0 "C2" H 6115 1696 50  0000 L CNN
-F 1 "1uF" H 6115 1605 50  0000 L CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 6000 1650 50  0001 C CNN
-F 3 "~" H 6000 1650 50  0001 C CNN
-	1    6000 1650
-	1    0    0    1   
-$EndComp
-Wire Wire Line
-	6650 1800 6350 1800
 Connection ~ 6650 1800
 Wire Wire Line
-	6350 1500 6000 1500
-Connection ~ 6350 1800
-Wire Wire Line
-	6350 1800 6000 1800
+	6350 1500 6050 1500
 $Comp
 L power:+3V3 #PWR05
 U 1 1 5C33F437
@@ -206,17 +175,10 @@ F 3 "" H 6000 1500 50  0001 C CNN
 	1    6000 1500
 	1    0    0    -1  
 $EndComp
-Connection ~ 6000 1500
-Wire Wire Line
-	7300 1500 8000 1500
 Wire Wire Line
 	8000 1500 8000 1600
-Connection ~ 7300 1500
-Wire Wire Line
-	7300 1800 8000 1800
 Wire Wire Line
 	8000 1800 8000 1700
-Connection ~ 7300 1800
 Wire Wire Line
 	3500 2900 3800 2900
 Wire Wire Line
@@ -235,7 +197,7 @@ U 1 1 5C342840
 P 9150 2450
 F 0 "J2" H 9230 2492 50  0000 L CNN
 F 1 "TTL-Serial" H 9230 2401 50  0000 L CNN
-F 2 "Connector_PinHeader_2.00mm:PinHeader_1x03_P2.00mm_Vertical" H 9150 2450 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 9150 2450 50  0001 C CNN
 F 3 "~" H 9150 2450 50  0001 C CNN
 	1    9150 2450
 	1    0    0    -1  
@@ -287,4 +249,44 @@ Wire Wire Line
 	7500 3350 7900 3350
 Wire Wire Line
 	8200 3350 8350 3350
+$Comp
+L Device:C C2
+U 1 1 5C4273C5
+P 6050 1650
+F 0 "C2" H 6165 1696 50  0000 L CNN
+F 1 "1uF" H 6165 1605 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D3.8mm_W2.6mm_P2.50mm" H 6088 1500 50  0001 C CNN
+F 3 "~" H 6050 1650 50  0001 C CNN
+	1    6050 1650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C3
+U 1 1 5C42752A
+P 7250 1650
+F 0 "C3" H 7365 1696 50  0000 L CNN
+F 1 "1uF" H 7365 1605 50  0000 L CNN
+F 2 "Capacitor_THT:C_Disc_D3.8mm_W2.6mm_P2.50mm" H 7288 1500 50  0001 C CNN
+F 3 "~" H 7250 1650 50  0001 C CNN
+	1    7250 1650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6650 1800 7250 1800
+Wire Wire Line
+	6950 1500 7250 1500
+Connection ~ 7250 1500
+Wire Wire Line
+	7250 1500 8000 1500
+Connection ~ 7250 1800
+Wire Wire Line
+	7250 1800 8000 1800
+Connection ~ 6050 1500
+Wire Wire Line
+	6050 1500 6000 1500
+Connection ~ 6050 1800
+Wire Wire Line
+	6050 1800 6000 1800
+Wire Wire Line
+	6050 1800 6650 1800
 $EndSCHEMATC
