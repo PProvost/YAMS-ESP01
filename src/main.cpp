@@ -2,127 +2,64 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-// NOTE: This file is NOT included in the github repo. You need to create it
-// yourself to include your own network settings. (See the next set of const char*
-// declarations for the required defines.)
-#ifndef TRAVIS_CI
-#include "../../ap_setting.h"
-#else
-#include "sample_ap_setting.h"
-#endif
+#include "mqttConfig.h"
+#include "wifi_helper.h"
 
+// Change this for each device you create
 const char *device_host_name = "esp8266-motion-1";
-const char *ssid = WIFI_SSID;
-const char *password = WIFI_PASSWORD;
-const char *mqtt_server = MQTT_HOST;
-const char *mqtt_username = MQTT_USER;
-const char *mqtt_password = MQTT_PASSWORD;
 
-//Static IP address configuration
-IPAddress staticIP(192, 168, 135, 6); //ESP static ip - see static IP config in setup_wifi()
-IPAddress gateway(192, 168, 135, 1);   //IP Address of your WiFi Router (Gateway)
-IPAddress subnet(255, 255, 255, 0);    //Subnet mask
-IPAddress dns(192, 168, 135, 1);       //DNS
-
-#define INACTIVE_DELAY 2000 // milliseconds between "on" state and "off" state
-
-// change the motions sensor topic as appropriate.
+// Change the motion sensor topic as required for your configuration.
+// Note that for HASS discovery to work, the structure is expected to be
+// <discovery_prefix>/<component>/[<node_id>/]<object_id>
+// I'm not using node_id, and the code below will append either "config" 
+// (for discovery) or "state" as required.
+// See https://www.home-assistant.io/docs/mqtt/discovery/ for more info.
 const char *mqtt_topic_template = "esp8266/binary_sensor/DEVICE_HOST_NAME/";
 
+// DEBUGGING: Uncomment to prevent deep sleep at the end of loop() and
+// instead just delay for 5s. Useful for debugging or when you need to keep it
+// awake. Do not leave this defined or your battery will die in days.
+// #define DO_NOT_SLEEP
+
+// This is the number of milliseconds between "on" state and "off" state.
+// For simplicity, we do not wait for the PIR to register inactive.
+#define INACTIVE_DELAY 2000
+
+PubSubClient client;
+MqttConfig config("/config.json");
+WifiHelper wifiHelper;
 WiFiClient wifiClient;
-PubSubClient client(wifiClient);
-long lastMsg = 0;
-char msg[50];
-int value = 0;
 
-uint8_t macAddressBytes[6];
-char macAddressString[18];
-
-void setup_wifi()
-{
-  WiFi.macAddress(macAddressBytes);
-  for(int i=0; i<sizeof(macAddressBytes); ++i)
-    sprintf(macAddressString, "%s%02x:", macAddressString, macAddressBytes[i]);
-  Serial.print("MAC Address: ");
-  Serial.println(macAddressString);
-
-  delay(10);
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.hostname(device_host_name);
-  // Uncomment to use a static IP address  
-  // WiFi.config(staticIP, subnet, gateway, dns);
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-}
-
-void reconnect()
-{
-  // Loop until we're reconnected
-  while (!client.connected())
-  {
-    Serial.print("Attempting MQTT connection...");
-    // Create a random client ID
-    String clientId = "ESP8266Client-";
-    clientId += String(random(0xffff), HEX);
-    // Attempt to connect
-    if (client.connect(clientId.c_str(), mqtt_username, mqtt_password))
-    {
-      Serial.println("connected");
-      Serial.println("- Sending HASS discovery message");
-
-      String mqttTopic = mqtt_topic_template;
-      mqttTopic.replace("DEVICE_HOST_NAME", device_host_name);
-      mqttTopic.concat("config");
-
-      String message = "{ \"name\": \"DEVICE_NAME\", \"device_class\": \"motion\" }";
-      message.replace("DEVICE_NAME", device_host_name);
-      client.publish(mqttTopic.c_str(), message.c_str());
-      client.loop();
-
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
+// Forward declarations
+void ensure_mqtt_connected();
+void sendHassDiscoveryMessage();
 
 void setup()
 {
-  //   pinMode(BUILTIN_LED, OUTPUT);     // Initialize the BUILTIN_LED pin as an output
   Serial.begin(115200);
-  setup_wifi();
-  client.setServer(mqtt_server, 1883);
-  // client.setCallback(callback);
+  delay(2000); // Make it easier to monitor from the start. Remove when done debugging.
+  Serial.println();
 
-  Serial.println("Starting...");
+  Serial.println("setup() starting");
+
+  config.read();
+  wifiHelper.setup_wifi(config);
+
+  Serial.println("Opening MQTT connection...");
   if (!client.connected())
-  {
-    reconnect();
-  }
+    config.connectMqtt(client, wifiClient);
+
+  sendHassDiscoveryMessage();
+
+  Serial.println("INFO: setup() complete; Wifi and MQTT connected");
 }
 
 void loop()
 {
+  Serial.println("loop(): current config:");
+  config.dumpAll(Serial);
+  Serial.println();
+
   String mqttTopic = mqtt_topic_template;
   mqttTopic.replace("DEVICE_HOST_NAME", device_host_name);
   mqttTopic.concat("state");
@@ -143,10 +80,29 @@ void loop()
   delay(100);
   Serial.println("Sleeping...");
 
+#ifndef DO_NOT_SLEEP
   ESP.deepSleep(0);
+#else
+  delay(5000);
+#endif
 }
 
-// If we want to subscribe to notifications, this is the callback
+void sendHassDiscoveryMessage()
+{
+  Serial.println("- Sending HASS discovery message");
+
+  String mqttTopic = mqtt_topic_template;
+  mqttTopic.replace("DEVICE_HOST_NAME", device_host_name);
+  mqttTopic.concat("config");
+
+  String message = "{ \"name\": \"DEVICE_NAME\", \"device_class\": \"motion\" }";
+  message.replace("DEVICE_NAME", device_host_name);
+  client.publish(mqttTopic.c_str(), message.c_str());
+  client.loop();
+}
+
+// NOTE: 
+// If we want to subscribe to MQTT messages for commands or settings, this is the callback
 // void callback(char* topic, byte* payload, unsigned int length) {
 //   Serial.print("Message arrived [");
 //   Serial.print(topic);
@@ -155,7 +111,6 @@ void loop()
 //     Serial.print((char)payload[i]);
 //   }
 //   Serial.println();
-
 //   // Switch on the LED if an 1 was received as first character
 //   if ((char)payload[0] == '1') {
 //     // digitalWrite(BUILTIN_LED, LOW);   // Turn the LED on (Note that LOW is the voltage level
@@ -164,6 +119,4 @@ void loop()
 //   } else {
 //     // digitalWrite(BUILTIN_LED, HIGH);  // Turn the LED off by making the voltage HIGH
 //   }
-
 // }
-

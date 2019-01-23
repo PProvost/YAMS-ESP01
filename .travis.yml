@@ -14,8 +14,9 @@ env:
 install:
     - pip install -U platformio
     - platformio update
-    # https://platformio.org/lib/show/89/PubSubClient
-    - platformio lib -g install 89
+    - platformio lib -g install 89          # https://platformio.org/lib/show/89/PubSubClient
+    - platformio lib -g install 64          # https://platformio.org/lib/show/64/ArduinoJson
+    - platformio lib -g install 567         # https://platformio.org/lib/show/567/WifiManager
 
 script:
     - platformio ci --board=esp01_1m
