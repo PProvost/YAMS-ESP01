@@ -4,7 +4,7 @@
 Yet Another Motion Sensor - Uses an ESP01 and a cheap PIR motion sensor, sends activation events via MQTT,
 optimized for very low power use.
 
-Credits: This design is based on the work described in Benny de Leeuw's article 
+Credits: This circuit used in this design is based on the work described in Benny de Leeuw's article 
 [Stable ESP01 Motion Sensor](https://medium.com/@leeuwte/stable-esp01-motion-sensor-for-mqtt-2d81c0b1e317).
 
 ## Notes:
@@ -12,7 +12,8 @@ Credits: This design is based on the work described in Benny de Leeuw's article
 * If you have a Puya-based ESP01 module, you may need to apply this patch to get SPIFFS to write correctly:
   https://github.com/letscontrolit/ESPEasy/blob/mega/patches/puya_v3.patch#L8
 * You can force the WifiManager to reset its settings by writing the SPIFFS filesystem with a file called
-  `/config.json` with the following contents: `{ "reset_settings": true }`
+  `/config.json` with the following contents: `{ "reset_settings": true }`. This file is included in the
+  /data directory in this repo.
 
 ## TODO:
 
