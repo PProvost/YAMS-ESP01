@@ -37,7 +37,7 @@ void sendHassDiscoveryMessage();
 void setup()
 {
   Serial.begin(115200);
-  delay(2000); // Make it easier to monitor from the start. Remove when done debugging.
+  // delay(2000); // Make it easier to monitor from the start. Remove when done debugging.
   Serial.println();
 
   Serial.println("setup() starting");
